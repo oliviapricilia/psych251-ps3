@@ -1,0 +1,57 @@
+STUDY 1 ("Study1.csv")
+
+subj			subject id
+female			gender (0 = man, 1 = woman)
+stereotype		stereotype score (1 to 9)
+brilliance		condition (0 = control, 1 = experimental)
+nominated_woman		dependent variable -- gender of the referred individual (0 = man, 1 = woman)
+trial			referral round (1 or 2)
+brilliance_c		mean-centered condition variable
+female_c		mean-centered gender variable
+stereotype_c		mean-centered stereotype variable
+
+
+STUDY 2 ("Study2.csv")
+
+subj			subject id
+brilliance		condition (0 = control, 1 = experimental)
+female			gender (0 = man, 1 = woman)
+stereotype		stereotype score (1 to 9)
+white			race/ethnicity (0 = participant of color; 1 = white participant) 
+nominated_woman		dependent variable -- gender of the referred individual (0 = man, 1 = woman)
+trial			referral round (1 or 2)
+brilliance_c		mean-centered condition variable
+female_c		mean-centered gender variable
+white_c			mean-centered race/ethnicity variable
+stereotype_c		mean-centered stereotype variable
+
+
+STUDIES 1 & 2 COMBINED ("Study12.csv")
+
+study			study id (1 or 2)
+subj			subject id
+brilliance		condition (0 = control, 1 = experimental)
+female			gender (0 = man, 1 = woman)
+stereotype		stereotype score (1 to 9)
+nominated_woman		dependent variable -- gender of the referred individual (0 = man, 1 = woman)
+trial			referral round (1 or 2)
+stereotype_c		mean-centered stereotype variable
+brilliance_c		mean-centered condition variable
+female_c		mean-centered gender variable
+
+
+STUDY 3 ("Study3.csv")
+
+subj			subject id
+female			gender (0 = boy, 1 = girl)
+age			child's age (5 to 7)
+stereotype		stereotype score (0 to 1)
+brilliance		condition (0 = control, 1 = experimental)
+game			game played (1 = first game, 2 = second game)
+trial			selection round (1, 2, or 3)
+chose_girl		dependent variable -- gender of the selected teammate (0 = boy, 1 = girl)
+brilliance_c		mean-centered condition variable	
+female_c		mean-centered gender variable
+age_c			mean-centered age variable
+stereotype_c		mean-centered stereotype variable
+trial_c			mean-centered selection round variable

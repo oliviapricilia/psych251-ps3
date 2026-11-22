@@ -1,0 +1,8 @@
+11:38 partA agent start
+11:39 partA agent done (subagent duration 82s, 11 tool uses)
+12:12 partB start (paper received)
+12:16 partB targets written to partB_bian2018.qmd (paper only, no data opened; Olivia chose Exp 1 core + key effect = Exp 1 condition)
+12:22 partB OSF download in place; inventory start
+12:23 inventory done: processed CSVs + R syntax w/ output + var labels + Exp2 prereg; no raw data, no seed
+12:25 PyMC cross-check done (sampling 68 s; script ~100 s wall). Values match paper within MCMC noise
+12:36 partB report drafted; brms run pending on Olivia's Mac

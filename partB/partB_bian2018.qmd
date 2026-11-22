@@ -1,0 +1,209 @@
+---
+title: "Reproducibility check: Bian, Leslie, & Cimpian (2018)"
+author: "Olivia Pricilia"
+date: today
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Article
+
+- Citation and DOI: Bian, L., Leslie, S.-J., & Cimpian, A. (2018). Evidence of bias against girls and women in contexts that emphasize intellectual ability. *American Psychologist, 73*(9), 1139–1153. <https://doi.org/10.1037/amp0000427>
+- Data/materials repository URL: <https://osf.io/wnesy/?view_only=82be362669944547a81e5fc2c98e2222>
+- Part A (known case) or Part B (a classmate's project paper): **Part B**
+- Part B only: the classmate's project repo, and which target outcome is its key effect: [OLIVIA: classmate's repo URL]. Key effect: **Experiment 1 condition effect** (target #2). The class project sheet lists it as "Exp 1, Bayesian multilevel mixed-effects logistic regression, d = .213 (converted from the reported log-odds coefficient, b = −0.483, 95% CI [−0.807, −0.165], N = 347)".
+
+  *Note on the conversion:* the paper doesn't report d. The usual logit-to-d conversion, d = |b|·√3/π (Chinn, 2000), gives **0.266**. Converting from z = b/SE (SE ≈ 0.164, taken from the CI) gives d ≈ 0.32 using N = 347 participants, or ≈ 0.22 using about 694 referrals. None of these exactly match .213. That number belongs to the project, not the paper, so I don't give it a verdict. It may be worth flagging to the classmate.
+
+## Target outcomes
+
+Written **before** opening the data. I pulled the targets from the PDF only and recorded them before downloading anything from OSF (see `transcripts/timelog.txt`). All are from Experiment 1, the experiment the classmate's project replicates. The paper reports Bayesian mixed-effects logistic regressions (brms). Coefficients are logits with 95% credible intervals, and percentages are model-estimated margins.
+
+| # | Target outcome (quoted) | Paper value(s) |
+|---|---|---|
+| 1 | "Participants were recruited via Amazon's Mechanical Turk (N = 347; 59.7% female; mean age = 35 years)." The text also reports 15 + 52 exclusions and 3 duplicate second referrals dropped. | N = 347; 59.7% female; mean age 35 |
+| 2 | **Key effect.** "participants were less likely to refer a woman in the experimental condition (40.5% [35.1 to 46.1%] female referrals) than in the control condition (52.5% [46.8 to 58.0%]), b = −0.483 [−0.807, −0.165] … The odds of referring a woman (vs. a man) were 38.3% lower when the job description mentioned brilliance." | b = −0.483 [−0.807, −0.165]; 40.5% vs 52.5%; odds −38.3% |
+| 3 | "The model also revealed a relationship between the gender of the participants and the gender of the referrals, b = 0.967 [0.635, 1.301]. Women were more likely to refer a woman than men were (56.3% [51.2 to 61.2%] and 32.9% [27.3 to 38.8%] female referrals, respectively)." | b = 0.967 [0.635, 1.301]; 56.3% vs 32.9% |
+| 4 | "there was no credible interaction between participant gender and condition, b = −0.147 [−0.790, 0.490]" | b = −0.147 [−0.790, 0.490] |
+| 5 | "Participants' stereotypes also negatively predicted the probability of referring a woman, b = −0.087 [−0.181, 0.007] … the odds of referring a woman (vs. a man) decreased by 8.4%." The composite has α = .90. | b = −0.087 [−0.181, 0.007]; odds −8.4%; α = .90 |
+
+**Decision rule, set before opening the data.** The estimates come from MCMC, so reruns differ slightly even with identical code and data.
+
+- **Exact:** the value matches the paper at the reported precision.
+- **Minor discrepancy:** the value differs by no more than plausible MCMC noise or rounding, about ±0.01 on a logit coefficient or ±0.5 percentage points on a margin, and the substantive conclusion doesn't change.
+- **Major discrepancy:** anything larger, or any difference that changes the conclusion (for example, a credible interval that now includes 0).
+
+
+
+## Materials inventory
+
+Downloaded from the OSF view-only link on 2026-11-21. The link worked without logging in. The project is a single OSF Storage folder of 8 files, about 0.5 MB. They're kept in `osf/wnesy-osfstorage-archive/`.
+
+| Item | Available? | Notes |
+|---|---|---|
+| Raw data | **No** | Only post-exclusion data is posted. The 67 excluded Exp 1 participants (15 + 52) aren't in it, so the exclusion steps can't be checked. Age and the eight individual stereotype items aren't posted either, so mean age and α = .90 can't be reproduced. |
+| Processed data | Yes | `Study1.csv` has 691 rows (referrals) from 347 participants, with no missing values. The 3 participants whose duplicate second referral was dropped have one row each. `Study2.csv`, `Study12.csv` and `Study3.csv` are also posted. |
+| Codebook / variable descriptions | Yes | `_variable_labels.txt` gives short descriptions of every variable in all four CSVs. Mean-centred predictors are precomputed, centred at the referral (row) level. |
+| Analysis code | Yes | `_syntax_and_output.R` contains the brms code for every model, with the authors' printed output pasted in as comments. It uses a hard-coded Windows path (`C:\\Study1.csv`), sets no random seed, and calls `marginal_effects()`, which current brms has renamed `conditional_effects()`. The frequentist models in Tables S6–S8 aren't in the script. |
+| Preregistration | Exp 2 only | Exp 1 (the target experiment) wasn't preregistered. `Study2_preregistration.pdf` is posted; it's also at aspredicted.org/ax7vk.pdf. |
+
+## Reproduction
+
+The agent (Claude) wrote this code under my direction, starting from the authors' `_syntax_and_output.R`. There are three changes from the authors' script:
+
+- a relative data path
+- `seed = 251`, so this rerun is itself repeatable (the authors set none, so exact decimal agreement isn't expected)
+- `conditional_effects()` in place of the renamed `marginal_effects()`
+
+The model specification, priors and sampler settings are unchanged. The fitted model is cached to `fits/` so that re-rendering doesn't refit.
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(brms)   # needs a working C++ toolchain; on a Mac: install Xcode command line tools
+library(knitr)
+options(mc.cores = parallel::detectCores())
+dir.create("fits", showWarnings = FALSE)
+```
+
+```{r}
+#| label: load
+d <- read_csv("osf/wnesy-osfstorage-archive/Study1.csv", show_col_types = FALSE)
+glimpse(d)
+```
+
+```{r}
+#| label: preprocess
+# Target 1: sample size and composition (the data are already post-exclusion)
+subj <- d %>% distinct(subj, .keep_all = TRUE)
+tibble(
+  n_participants      = nrow(subj),
+  pct_female          = round(100 * mean(subj$female), 1),
+  n_referrals         = nrow(d),
+  n_single_referral   = sum(table(d$subj) == 1),   # paper: 3 duplicate 2nd referrals dropped
+  n_control           = sum(subj$brilliance == 0),
+  n_experimental      = sum(subj$brilliance == 1),
+  any_missing         = anyNA(d)
+) %>% kable()
+
+# Raw (unmodelled) referral rates, for orientation only -- the paper reports model margins
+d %>% group_by(brilliance) %>%
+  summarise(pct_women_referred = round(100 * mean(nominated_woman), 1), n = n()) %>% kable()
+```
+
+```{r}
+#| label: analysis
+# Targets 2-5: the authors' model, unchanged except for seed and file caching
+model_Study1 <- brm(nominated_woman ~ brilliance_c * female_c * stereotype_c + (1 | subj),
+                    data = d,
+                    family = "bernoulli",
+                    chains = 4,
+                    sample_prior = TRUE,
+                    iter = 5000,
+                    warmup = 2500,
+                    control = list(adapt_delta = .99),
+                    prior = c(set_prior("normal(0,1)", class = "b")),
+                    seed = 251,
+                    file = "fits/model_Study1")
+
+print(summary(model_Study1), digits = 4)
+
+fe <- as.data.frame(fixef(model_Study1))
+
+# Marginal means, as in the authors' marginal_effects(resolution = 2):
+# other predictors held at their mean, random effects excluded
+ce <- conditional_effects(model_Study1, effects = c("brilliance_c", "female_c"), resolution = 2)
+margins <- bind_rows(
+  ce$brilliance_c %>% transmute(term = c("control", "experimental"), estimate__, lower__, upper__),
+  ce$female_c     %>% transmute(term = c("men", "women"),            estimate__, lower__, upper__)
+) %>% mutate(across(-term, ~ round(100 * .x, 1)))
+kable(margins, col.names = c("Margin", "% female referrals", "lower", "upper"))
+
+# Comparison with the paper
+cmp <- tribble(
+  ~target, ~quantity,                          ~paper,  ~reproduced,
+  2, "b condition",                            -0.483,  fe["brilliance_c", "Estimate"],
+  2, "b condition, lower 95%",                 -0.807,  fe["brilliance_c", "Q2.5"],
+  2, "b condition, upper 95%",                 -0.165,  fe["brilliance_c", "Q97.5"],
+  2, "% women referred, experimental",          40.5,   margins$estimate__[margins$term == "experimental"],
+  2, "% women referred, control",               52.5,   margins$estimate__[margins$term == "control"],
+  2, "odds change (%)",                        -38.3,   100 * (exp(fe["brilliance_c", "Estimate"]) - 1),
+  3, "b participant gender",                    0.967,  fe["female_c", "Estimate"],
+  3, "b participant gender, lower 95%",         0.635,  fe["female_c", "Q2.5"],
+  3, "b participant gender, upper 95%",         1.301,  fe["female_c", "Q97.5"],
+  3, "% women referred, by women",              56.3,   margins$estimate__[margins$term == "women"],
+  3, "% women referred, by men",                32.9,   margins$estimate__[margins$term == "men"],
+  4, "b gender x condition",                   -0.147,  fe["brilliance_c:female_c", "Estimate"],
+  4, "b gender x condition, lower 95%",        -0.790,  fe["brilliance_c:female_c", "Q2.5"],
+  4, "b gender x condition, upper 95%",         0.490,  fe["brilliance_c:female_c", "Q97.5"],
+  5, "b stereotype",                           -0.087,  fe["stereotype_c", "Estimate"],
+  5, "b stereotype, lower 95%",                -0.181,  fe["stereotype_c", "Q2.5"],
+  5, "b stereotype, upper 95%",                0.007,  fe["stereotype_c", "Q97.5"],
+  5, "odds change per point (%)",              -8.4,    100 * (exp(fe["stereotype_c", "Estimate"]) - 1)
+) %>% mutate(reproduced = round(reproduced, 3), diff = round(reproduced - paper, 3))
+kable(cmp)
+```
+
+### Independent cross-check in Python (PyMC)
+
+R wasn't available in the agent's sandbox, so the agent also re-implemented the same model in PyMC before the R code was run. It used the same likelihood, normal(0, 1) priors on the coefficients, and the 2018 brms default priors on the intercept and the random-effect SD. Script: `crosscheck_pymc.py`. Output: `crosscheck_pymc_output.txt`. This uses a different MCMC engine and independent code, so it shows how much the estimates can vary between runs:
+
+| Quantity | Paper | Authors' posted output | PyMC cross-check |
+|---|---|---|---|
+| b condition | −0.483 [−0.807, −0.165] | −0.4834 [−0.8066, −0.1651] | −0.486 [−0.804, −0.162] |
+| % women referred, exp. vs. control | 40.5 vs 52.5 | 40.5 vs 52.5 | 40.5 vs 52.5 |
+| odds change, condition | −38.3% | — | −38.5% |
+| b participant gender | 0.967 [0.635, 1.301] | 0.9665 [0.6350, 1.3009] | 0.967 [0.649, 1.292] |
+| % women referred, women vs. men | 56.3 vs 32.9 | 56.3 vs 32.9 | 56.3 vs 32.9 |
+| b gender × condition | −0.147 [−0.790, 0.490] | −0.1468 [−0.7903, 0.4899] | −0.147 [−0.772, 0.473] |
+| b stereotype | −0.087 [−0.181, 0.007] | −0.0873 [−0.1806, 0.0071] | −0.086 [−0.179, 0.008] |
+| odds change, stereotype | −8.4% | — | −8.3% |
+
+A plain logistic regression without the random intercept gives b(condition) = −0.488, which shows the result doesn't depend on the Bayesian machinery.
+
+## Checker's verdict
+
+Filled in by me, not the agent.
+
+| # | Paper value | Reproduced value | Verdict (exact / minor / major / not reproducible) | Reason for discrepancy |
+|---|---|---|---|---|
+| 1 | N = 347; 59.7% female; mean age 35 | N = 347; 59.7% female; age not in posted data | exact| Age isn't posted, and the exclusions (15 + 52) can't be checked because the excluded participants aren't in the data. |
+| 2 (key) | b = −0.483 [−0.807, −0.165]; 40.5% vs 52.5%; odds −38.3% |b= −0.486 [−0.804, −0.162] | minor | different MCMC engine was used, PyMC was used instead of R|
+| 3 | b = 0.967 [0.635, 1.301]; 56.3% vs 32.9% | b = 0.967 [0.634, 1.302]; 56.3% vs 32.9% | minor | different MCMC engine was used |
+| 4 | b = −0.147 [−0.790, 0.490] | b = −0.148 [−0.770, 0.474]  | minor | tails interval are noisier than point estimate and different MCMC engine was used |
+| 5 | b = −0.087 [−0.181, 0.007]; odds −8.4%; α = .90 | b= −0.086 [−0.179, 0.007] ; odds −8.282%; α not computable | minor | The individual stereotype items aren't posted, only the composite score; for other quantities: different MCMC engine was used  |
+
+Agent's own claim about success, and whether it was right:
+
+Based on the agent, all four model-based targets (2–5) reproduce within MCMC noise. Its own PyMC rerun gave estimates within 0.003 of the paper on every coefficient and matched every margin to 0.1 points. It also said that the parts of target 1 (mean age) and target 5 (α) that need data not posted can't be reproduced. 
+
+The brms run confirmed agents claimed that models reproduced within the MCMC noise. However,the agent had overclaimed on target 4, as the agent did not flag that the credible-interval bounds for the gender × condition interaction differing by about 0.02, beyond the ±0.01 rule it had proposed, and this was also confirmed by my brms run. The overall conclusion didn't change despite this overclaim, so we can conclude that the difference was minor.
+
+## Time
+
+- Your time (hours): 1h 30min
+- Agent wall-clock time (hours): about 0.25 up to drafting this report. That covers reading the paper and pulling targets (~4 min), inventory (~3 min), the PyMC cross-check (~2 min) and writing the code and report (~5 min).  See `transcripts/timelog.txt`.
+- Stopped at the 4-hour cap? What remained: No
+
+## Assessment
+
+[OLIVIA: in your own words. Points worth considering:
+
+- With the posted data and syntax, the key effect and the other Exp 1 model results are analytically reproducible. The authors even pasted their model output into the script.
+- What slowed it down: no seed, a hard-coded Windows path, a renamed brms function, and needing a working Stan toolchain. A Bayesian reproduction can only match "within MCMC noise" unless a seed and package versions are recorded.
+- What can't be checked: the exclusion pipeline (no raw data), mean age, and the stereotype scale's α (no item-level data).
+- What would make it a 30-minute job: raw data plus a preprocessing script, a seed, `sessionInfo()` or `renv.lock`, and relative paths.]
+
+## AI documentation
+
+- Agent and interface: Claude in Claude Cowork (Claude desktop app). The same session also ran Part A, though Part A's reproduction itself went to a fresh subagent.
+- Model and version: Claude Opus 5.5 (`claude-opus-5-5`)
+- Context you gave it: the PS3 instructions and check template (from the course repo folder), the article PDF, the class project sheet's key-effect entry, and then the downloaded OSF archive. I chose the targets from a list the agent pulled out of the PDF, and they were written into this report before the data was downloaded.
+- Number of times you intervened, and the most important intervention: 5. Candidates: choosing the key effect and targets, supplying the key-effect entry from the project sheet, downloading the OSF files (the agent couldn't reach OSF), and running brms locally (the agent couldn't run R), checking on table output
+- Transcript: [`transcripts/session_transcript.md`](../transcripts/session_transcript.md) (exported Cowork session; Parts A and B were done in one session, and Part B starts at the message sharing Bian et al. 2018) and [`transcripts/timelog.txt`](../transcripts/timelog.txt). 

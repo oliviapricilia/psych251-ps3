@@ -1,0 +1,136 @@
+---
+title: "Reproducibility check: Joel, Teper, & MacDonald (2014)"
+author: "Olivia Pricilia"
+date: today
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Article
+
+- Citation and DOI: Joel, S., Teper, R., & MacDonald, G. (2014). People overestimate their willingness to reject potential romantic partners by overlooking their concern for other people. *Psychological Science, 25*(12), 2233–2240. <https://doi.org/10.1177/0956797614552828>
+- Data/materials repository URL: <https://osf.io/873fp/> (local copy: `ps3/Group A/Choice 1/` in the course repo)
+- Part A (known case) or Part B (a classmate's project paper): **Part A**, Group A Choice 1, Study 1
+- Part B only: n/a
+
+## Target outcomes
+
+Quoted from the Study 1 results section, as given in the provided `reproducibilityReport.Rmd`.
+
+| # | Target outcome (quoted) | Paper value(s) |
+|---|---|---|
+| 1 | "Only 10 of the 61 participants in the hypothetical condition chose to exchange contact information with the unattractive potential date (16%)." | 10 / 61, 16% |
+| 2 | "In contrast, 26 of the 71 participants in the real condition chose to exchange contact information (37%)." | 26 / 71, 37% |
+| 3 | "A chi-square test of independence indicated that participants were significantly less likely to reject the unattractive potential date in the real condition … X^2(1, N = 132) = 6.77, p = .009." | χ²(1, N = 132) = 6.77, p = .009 |
+
+## Materials inventory
+
+| Item | Available? | Notes |
+|---|---|---|
+| Raw data | Partly | `Empathy Gap Study 1 data.sav` holds the 132 analysed participants only. The 18 excluded participants (15 suspicious, 3 not single) are not included. |
+| Processed data | Yes | The .sav file is effectively the processed analytic sample, with SPSS value labels. |
+| Codebook / variable descriptions | Partly | No separate codebook, but SPSS variable and value labels are embedded, and the authors flag the key variables under `REQUIRED_VARIABLES_START_BELOW`. |
+| Analysis code | No | No SPSS syntax or R scripts are provided. |
+| Preregistration | No | Not mentioned in the paper (2014). |
+
+## Reproduction
+
+The agent's code, copied unchanged from `joel2014/reproducibilityReport.Rmd`. The only edit is the data path, which now points into the `joel2014/` subfolder.
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(knitr)
+library(haven)
+```
+
+```{r}
+#| label: load
+d <- read_sav("joel2014/data/Empathy Gap Study 1 data.sav")
+nrow(d) # expect 132
+```
+
+```{r}
+#| label: preprocess
+d_tidy <- d %>%
+  select(condition, exchangeinfo) %>%
+  mutate(condition = haven::as_factor(condition),
+         exchangeinfo = haven::as_factor(exchangeinfo))
+
+d_tidy %>% summarise(across(everything(), ~ sum(is.na(.x))))
+```
+
+```{r}
+#| label: analysis
+desc <- d_tidy %>%
+  group_by(condition) %>%
+  summarise(n_total = n(),
+            n_exchange = sum(exchangeinfo == "yes"),
+            pct_exchange = round(100 * n_exchange / n_total)) %>%
+  ungroup()
+kable(desc, col.names = c("Condition", "N", "N exchanged contact info", "% exchanged"))
+
+tab <- table(d_tidy$condition, d_tidy$exchangeinfo)
+tab
+chi <- chisq.test(tab, correct = FALSE)
+chi
+
+comparison <- tibble(
+  value = c("Hypothetical: n exchanged", "Hypothetical: N", "Hypothetical: %",
+            "Real: n exchanged", "Real: N", "Real: %",
+            "chi-square df", "N", "chi-square", "p"),
+  reported = c(10, 61, 16, 26, 71, 37, 1, 132, 6.77, .009),
+  reproduced = c(desc$n_exchange[desc$condition == "hypothetical"],
+                 desc$n_total[desc$condition == "hypothetical"],
+                 desc$pct_exchange[desc$condition == "hypothetical"],
+                 desc$n_exchange[desc$condition == "real"],
+                 desc$n_total[desc$condition == "real"],
+                 desc$pct_exchange[desc$condition == "real"],
+                 unname(chi$parameter),
+                 sum(tab),
+                 round(unname(chi$statistic), 2),
+                 round(chi$p.value, 3))
+) %>%
+  mutate(match = abs(reported - reproduced) < 1e-8)
+kable(comparison)
+```
+
+## Checker's verdict
+
+Filled in by me, not the agent. I checked the agent's numbers with a separate script and against the rendered output above.
+
+
+| # | Paper value | Reproduced value | Verdict (exact / minor / major / not reproducible) | Reason for discrepancy |
+|---|---|---|---|---|
+| 1 | 10 / 61 (16%) | 10 / 61 (16.4%) | exact | rounding |
+| 2 | 26 / 71 (37%) | 26 / 71 (36.6%) | exact | rounding |
+| 3 | χ²(1, N = 132) = 6.77, p = .009 | χ²(1, N = 132) = 6.767, p = .0093 | exact |rounding |
+
+Agent's own claim about success, and whether it was right:
+
+The agent claimed "Reproduction successful", with every target matching exactly. After checking, agent claim was correct.
+
+
+## Time
+
+- Your time (hours): 1 hour
+- Agent wall-clock time (hours): 0.02 (82 s, 11 tool calls)
+- Stopped at the 4-hour cap? What remained: No. Nothing remained.
+
+## Assessment
+
+The agent managed to reproduce the primary results of the finding in exact manner (except for rounding). Data availability and clear data and variables labeling made reproducibility accessible with minimum human intervention. The limitations of this replication are the continuity correction wasn't stated in the paper, and performing full robustness check on the pipeline would require pre-exclusion data and analysis code to be made available.
+
+## AI documentation
+
+- Agent and interface: Claude, a fresh general-purpose subagent started from a Claude Cowork (Claude desktop app) session. The main session was where I set up the task and checked the result.
+- Model and version: Claude Opus 5.5 (`claude-opus-5-5`)
+- Context you gave it: only the article folder (`article.pdf`, `data/`, `reproducibilityReport.Rmd`), plus environment facts (R not installed in its sandbox, so it should check numbers in Python and write R for later rendering). It did not see the PS3 instructions or the check template. Full prompt: [`transcripts/partA_agent_prompt.md`](../transcripts/partA_agent_prompt.md).
+- Number of times you intervened, and the most important intervention: 0. The agent asked no questions.
+- Transcript: [`transcripts/partA_agent_transcript.md`](../transcripts/partA_agent_transcript.md) (the reproduction agent's full transcript), [`transcripts/partA_agent_prompt.md`](../transcripts/partA_agent_prompt.md) (prompt and final reply),[`partA/joel2014/agent_log.md`](joel2014/agent_log.md) (the agent's timestamped log), and [`transcripts/session_transcript.md`](../transcripts/session_transcript.md) (exported transcript of the Cowork session). 

@@ -1,0 +1,12 @@
+.DS_Store
+.quarto/
+*_files/
+*.html
+partB/fits/
+.Rproj.user/
+.Rhistory
+# copyrighted article PDFs: don't redistribute in a public repo
+partA/joel2014/article.pdf
+partB/Bian et al 2018.pdf
+transcripts/raw/
+logs/

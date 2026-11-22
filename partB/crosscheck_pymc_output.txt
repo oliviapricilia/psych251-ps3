@@ -1,0 +1,36 @@
+Initializing NUTS using jitter+adapt_diag...
+This usually happens when PyTensor is installed via pip. We recommend it be installed via conda/mamba/pixi instead.
+Alternatively, you can use an experimental backend such as Numba or JAX that perform their own BLAS optimizations, by setting `pytensor.config.mode == 'NUMBA'` or passing `mode='NUMBA'` when compiling a PyTensor function.
+For more options and details see https://pytensor.readthedocs.io/en/latest/troubleshooting.html#how-do-i-configure-test-my-blas-library
+Multiprocess sampling (4 chains in 2 jobs)
+NUTS: [Intercept, b, sd_subj, z]
+Plain logistic regression (no random effect):
+Intercept                            -0.1314
+brilliance_c                         -0.4880
+female_c                              0.9701
+brilliance_c:female_c                -0.1581
+stereotype_c                         -0.0832
+brilliance_c:stereotype_c            -0.0803
+female_c:stereotype_c                 0.0037
+brilliance_c:female_c:stereotype_c   -0.2807 
+
+Sampling 4 chains for 2_500 tune and 2_500 draw iterations (10_000 + 10_000 draws total) took 68 seconds.
+Bayesian mixed model (PyMC), posterior mean [95% CrI]:
+  brilliance_c                           -0.4862 [-0.8035, -0.1622]
+  female_c                                0.9672 [ 0.6493,  1.2915]
+  stereotype_c                           -0.0861 [-0.1787,  0.0080]
+  brilliance_c:female_c                  -0.1468 [-0.7719,  0.4728]
+  brilliance_c:stereotype_c              -0.0807 [-0.2641,  0.1031]
+  female_c:stereotype_c                   0.0057 [-0.1774,  0.1913]
+  brilliance_c:female_c:stereotype_c     -0.2759 [-0.6427,  0.0851]
+  sd(Intercept) 0.1856 [0.0081, 0.5109]
+  max R-hat: 1.0019355080756316
+
+Marginal means (% female referrals):
+  control      52.5% [47.2, 58.0]
+  experimental 40.5% [34.9, 46.3]
+  men          32.9% [27.4, 38.7]
+  women        56.3% [51.3, 61.3]
+
+Odds change, condition: -38.5%
+Odds change, stereotype: -8.3%

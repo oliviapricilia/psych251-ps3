@@ -1,0 +1,135 @@
+---
+title: "Reproducibility Report: Group A Choice 1"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+-------
+
+For this exercise, please try to reproduce the results from Study 1 of the associated paper (Joel, Teper, & MacDonald, 2014). The PDF of the paper is included in the same folder as this Rmd file. 
+
+#### Methods summary: 
+
+In study 1, 150 introductory psychology students were randomly assigned to a "real" or a "hypothetical" condition. In the real condition, participants believed that they would have a real opportuniy to connect with potential romantic partners. In the hypothetical condition, participants simply imagined that they are on a date. All participants were required to select their favorite profile and answer whether they were willing to exchange contact information. 
+
+------
+
+#### Target outcomes: 
+
+Below is the specific result you will attempt to reproduce (quoted directly from the results section of Study 1):
+
+>> We next tested our primary hypothesis that participants would be more reluctant to reject the unattractive date when they believed the situation to be real rather than hypothetical. Only 10 of the 61 participants in the hypothetical condition chose to exchange contact information with the unattractive potential date (16%). In contrast, 26 of the 71 participants in the real condition chose to exchange contact information (37%). A chi-square test of independence indicated that participants were significantly less likely to reject the unattractive potential date in the real condition compared with the hypothetical condition, X^2(1, N = 132) = 6.77, p = .009.
+
+------
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+# Step 1: Load packages
+
+```{r}
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+
+# #optional packages:
+# library(broom)
+# library(labelled)# converts SPSS's labelled to R's factor 
+```
+
+# Step 2: Load data
+
+```{r}
+# Just Study 1
+d <- read_sav('data/Empathy Gap Study 1 data.sav')
+```
+
+# Step 3: Tidy data
+
+The .sav file already contains only the final analytic sample (132 rows; the 15 suspicious and 3 non-single participants described in the paper are not in the file), so no exclusions are applied here. We keep the two variables needed for the target analysis and convert the SPSS value labels to factors: `condition` (0 = hypothetical, 1 = real) and `exchangeinfo` (1 = yes, 2 = no).
+
+```{r}
+nrow(d) # expect 132, matching the reported final sample
+
+d_tidy <- d %>%
+  select(condition, exchangeinfo) %>%
+  mutate(condition = haven::as_factor(condition),
+         exchangeinfo = haven::as_factor(exchangeinfo))
+
+# check for missing values in the analysis variables
+d_tidy %>% summarise(across(everything(), ~ sum(is.na(.x))))
+```
+
+# Step 4: Run analysis
+
+## Descriptive statistics
+
+> Only 10 of the 61 participants in the hypothetical condition chose to exchange contact information with the unattractive potential date (16%). In contrast, 26 of the 71 participants in the real condition chose to exchange contact information (37%).
+
+```{r}
+# reproduce the above results here
+desc <- d_tidy %>%
+  group_by(condition) %>%
+  summarise(n_total = n(),
+            n_exchange = sum(exchangeinfo == "yes"),
+            pct_exchange = round(100 * n_exchange / n_total)) %>%
+  ungroup()
+
+kable(desc, col.names = c("Condition", "N", "N exchanged contact info", "% exchanged"))
+```
+
+## Inferential statistics
+
+> A chi-square test of independence indicated that participants were significantly less likely to reject the unattractive potential date in the real condition compared with the hypothetical condition, X^2(1, N = 132) = 6.77, p = .009.
+
+Hint: if you are using the function chisq.test(), make sure to set the continuity correction to false ("correct = FALSE") since sample size is greater than 20. 
+
+```{r}
+# reproduce the above results here
+tab <- table(d_tidy$condition, d_tidy$exchangeinfo)
+tab
+
+chi <- chisq.test(tab, correct = FALSE)
+chi
+
+# compare reproduced values with the reported values
+comparison <- tibble(
+  value = c("Hypothetical: n exchanged", "Hypothetical: N", "Hypothetical: %",
+            "Real: n exchanged", "Real: N", "Real: %",
+            "chi-square df", "N", "chi-square", "p"),
+  reported = c(10, 61, 16, 26, 71, 37, 1, 132, 6.77, .009),
+  reproduced = c(desc$n_exchange[desc$condition == "hypothetical"],
+                 desc$n_total[desc$condition == "hypothetical"],
+                 desc$pct_exchange[desc$condition == "hypothetical"],
+                 desc$n_exchange[desc$condition == "real"],
+                 desc$n_total[desc$condition == "real"],
+                 desc$pct_exchange[desc$condition == "real"],
+                 unname(chi$parameter),
+                 sum(tab),
+                 round(unname(chi$statistic), 2),
+                 round(chi$p.value, 3))
+) %>%
+  mutate(match = abs(reported - reproduced) < 1e-8)
+
+kable(comparison)
+```
+
+# Step 5: Reflection
+
+Were you able to reproduce the results you attempted to reproduce? If not, what part(s) were you unable to reproduce?
+
+> Yes. All target values were reproduced exactly: 10 of 61 participants in the hypothetical condition (16%) and 26 of 71 in the real condition (37%) agreed to exchange contact information, and the chi-square test of independence without continuity correction gave X^2(1, N = 132) = 6.77, p = .009 (unrounded: 6.767, p = .0093).
+
+How difficult was it to reproduce your results?
+
+> Not difficult. Once the data were loaded, the result took one cross-tabulation and one chi-square test.
+
+What aspects made it difficult? What aspects made it easy?
+
+> Easy: the authors' file already holds the final 132-person analytic sample, and the key variables (`condition`, `exchangeinfo`) are labelled in SPSS and grouped under a "REQUIRED_VARIABLES" marker, so it was clear which columns to use. The template's hint about turning off the continuity correction also removed the one analytic choice that changes the test statistic (with Yates' correction the value would be smaller). Slightly harder: the file does not include the 18 excluded participants or the exclusion variables, so the exclusion step reported in the paper (150 to 132) cannot be checked; we had to take it on trust. The `exchangeinfo` coding (1 = yes, 2 = no) is also the reverse of a usual 0/1 coding, so it has to be read from the value labels.
+
+
