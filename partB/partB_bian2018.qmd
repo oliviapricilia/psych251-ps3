@@ -17,7 +17,7 @@ execute:
 - Citation and DOI: Bian, L., Leslie, S.-J., & Cimpian, A. (2018). Evidence of bias against girls and women in contexts that emphasize intellectual ability. *American Psychologist, 73*(9), 1139–1153. <https://doi.org/10.1037/amp0000427>
 - Data/materials repository URL: <https://osf.io/wnesy/?view_only=82be362669944547a81e5fc2c98e2222>
 - Part A (known case) or Part B (a classmate's project paper): **Part B**
-- Part B only: the classmate's project repo, and which target outcome is its key effect: [OLIVIA: classmate's repo URL]. Key effect: **Experiment 1 condition effect** (target #2). The class project sheet lists it as "Exp 1, Bayesian multilevel mixed-effects logistic regression, d = .213 (converted from the reported log-odds coefficient, b = −0.483, 95% CI [−0.807, −0.165], N = 347)".
+- Part B only: the classmate's project repo, and which target outcome is its key effect: <https://github.com/psych251/bian2018>. Key effect: **Experiment 1 condition effect** (target #2). The class project sheet lists it as "Exp 1, Bayesian multilevel mixed-effects logistic regression, d = .213 (converted from the reported log-odds coefficient, b = −0.483, 95% CI [−0.807, −0.165], N = 347)".
 
   *Note on the conversion:* the paper doesn't report d. The usual logit-to-d conversion, d = |b|·√3/π (Chinn, 2000), gives **0.266**. Converting from z = b/SE (SE ≈ 0.164, taken from the CI) gives d ≈ 0.32 using N = 347 participants, or ≈ 0.22 using about 694 referrals. None of these exactly match .213. That number belongs to the project, not the paper, so I don't give it a verdict. It may be worth flagging to the classmate.
 
@@ -193,12 +193,10 @@ The brms run confirmed agents claimed that models reproduced within the MCMC noi
 
 ## Assessment
 
-[OLIVIA: in your own words. Points worth considering:
-
-- With the posted data and syntax, the key effect and the other Exp 1 model results are analytically reproducible. The authors even pasted their model output into the script.
-- What slowed it down: no seed, a hard-coded Windows path, a renamed brms function, and needing a working Stan toolchain. A Bayesian reproduction can only match "within MCMC noise" unless a seed and package versions are recorded.
-- What can't be checked: the exclusion pipeline (no raw data), mean age, and the stereotype scale's α (no item-level data).
-- What would make it a 30-minute job: raw data plus a preprocessing script, a seed, `sessionInfo()` or `renv.lock`, and relative paths.]
+The key effect and other Experiment 1 model results are analytically reproducible, given data and syntax are publicly available. 
+However, there are several things that act as obstacles in the replication process: no seed for MCMC was provided, a hard-coded Windows path, a renamed brms function, and needing a working Stan toolchain. Because of lacking in MCMC seed and package version, our Bayesian replication can only match "within MCMC noise".
+There are also several items that cannot be checked due to lack of data and code availability : the exclusion pipeline (no raw data), mean age, and the stereotype scale's α (no item-level data). 
+The replication process could be speed up into a 30 minutes job, if raw data,  preprocessing script, a seed, `sessionInfo()` or `renv.lock`, and relative paths are provided.
 
 ## AI documentation
 

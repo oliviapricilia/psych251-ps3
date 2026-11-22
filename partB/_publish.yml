@@ -1,0 +1,4 @@
+- source: partB_bian2018.qmd
+  posit-connect-cloud:
+    - id: 01a200a2-bcb6-bb09-3d23-5eaf36659a3d
+      url: https://connect.posit.cloud/oliviapricilia/content/01a200a2-bcb6-bb09-3d23-5eaf36659a3d

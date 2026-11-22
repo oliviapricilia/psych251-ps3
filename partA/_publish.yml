@@ -1,0 +1,4 @@
+- source: partA_joel2014.qmd
+  posit-connect-cloud:
+    - id: 01a200a2-36ba-977a-8156-bdbdc55bf06e
+      url: https://connect.posit.cloud/oliviapricilia/content/01a200a2-36ba-977a-8156-bdbdc55bf06e
